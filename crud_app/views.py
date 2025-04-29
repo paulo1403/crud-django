@@ -5,8 +5,9 @@ from django.contrib import messages
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
+from django.http import JsonResponse
 from .forms import CustomUserCreationForm
-from .models import Item, ChangeLog, Tag, Comment
+from .models import Item, ChangeLog, Tag, Comment, Favorite
 import os
 
 
@@ -69,6 +70,11 @@ def item_list(request):
     # Obtener todas las etiquetas para el filtro
     all_tags = Tag.objects.all()
 
+    # Obtener los favoritos del usuario
+    user_favorites = set(
+        Favorite.objects.filter(user=request.user).values_list("item_id", flat=True)
+    )
+
     context = {
         "items": items_page,
         "search_query": search_query,
@@ -77,6 +83,7 @@ def item_list(request):
         "tag_filter": tag_filter,
         "creators": creators,
         "all_tags": all_tags,
+        "user_favorites": user_favorites,
     }
 
     return render(request, "item_list.html", context)
@@ -87,6 +94,9 @@ def item_list(request):
 def item_create(request):
     # Obtener todas las etiquetas para mostrar en el formulario
     all_tags = Tag.objects.all().order_by("name")
+
+    # Capturar el origen de la solicitud (kanban o lista normal)
+    source = request.GET.get("source", "")
 
     if request.method == "POST":
         name = request.POST.get("name")
@@ -127,9 +137,14 @@ def item_create(request):
             action="create",
             additional_data={"description": item.description},
         )
-        return redirect("item_list")
 
-    context = {"all_tags": all_tags}
+        # Redireccionar según el origen de la solicitud
+        if source == "kanban":
+            return redirect("kanban_board")
+        else:
+            return redirect("item_list")
+
+    context = {"all_tags": all_tags, "source": source}
     return render(request, "item_form.html", context)
 
 
@@ -301,3 +316,96 @@ def item_detail(request, pk):
     context = {"item": item, "comments": comments, "changes": changes}
 
     return render(request, "item_detail.html", context)
+
+
+# Toggle favorite status for an item
+@login_required
+def toggle_favorite(request, pk):
+    item = get_object_or_404(Item, pk=pk)
+    favorite, created = Favorite.objects.get_or_create(user=request.user, item=item)
+
+    if not created:
+        # Si ya existía el favorito, lo eliminamos
+        favorite.delete()
+        messages.success(request, f"'{item.name}' removed from favorites.")
+    else:
+        messages.success(request, f"'{item.name}' added to favorites!")
+
+    # Redireccionar de vuelta a la página anterior o a la lista de ítems
+    next_url = request.META.get("HTTP_REFERER")
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(next_url)
+    return redirect("item_list")
+
+
+# List user's favorite items
+@login_required
+def favorites_list(request):
+    favorites = (
+        Favorite.objects.filter(user=request.user)
+        .select_related("item")
+        .order_by("-created_at")
+    )
+    return render(request, "favorites_list.html", {"favorites": favorites})
+
+
+# Kanban board view
+@login_required
+def kanban_board(request):
+    todo_items = Item.objects.filter(status="todo").order_by("-updated_at")
+    in_progress_items = Item.objects.filter(status="in_progress").order_by(
+        "-updated_at"
+    )
+    done_items = Item.objects.filter(status="done").order_by("-updated_at")
+
+    # Get user's favorite items for highlighting
+    user_favorites = set(
+        Favorite.objects.filter(user=request.user).values_list("item_id", flat=True)
+    )
+
+    context = {
+        "todo_items": todo_items,
+        "in_progress_items": in_progress_items,
+        "done_items": done_items,
+        "user_favorites": user_favorites,
+    }
+
+    return render(request, "kanban_board.html", context)
+
+
+# Update item status (for Kanban drag-and-drop)
+@login_required
+def update_item_status(request, pk):
+    if (
+        request.method == "POST"
+        and request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    ):
+        item = get_object_or_404(Item, pk=pk)
+        new_status = request.POST.get("status")
+
+        if new_status in dict(Item.STATUS_CHOICES).keys():
+            old_status = item.status
+            item.status = new_status
+            item.save()
+
+            # Log the status change
+            ChangeLog.objects.create(
+                item=item,
+                item_name=item.name,
+                original_item_id=item.id,
+                user=request.user,
+                action="update",
+                additional_data={
+                    "status_change": True,
+                    "old_status": dict(Item.STATUS_CHOICES).get(old_status),
+                    "new_status": dict(Item.STATUS_CHOICES).get(new_status),
+                },
+            )
+
+            return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False}, status=400)

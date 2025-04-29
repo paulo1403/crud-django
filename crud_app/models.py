@@ -10,6 +10,12 @@ class Tag(models.Model):
 
 
 class Item(models.Model):
+    STATUS_CHOICES = [
+        ("todo", "To Do"),
+        ("in_progress", "In Progress"),
+        ("done", "Done"),
+    ]
+
     name = models.CharField(max_length=100)
     description = models.TextField()
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="items")
@@ -17,6 +23,7 @@ class Item(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     file = models.FileField(upload_to="item_files/", null=True, blank=True)
     tags = models.ManyToManyField(Tag, related_name="items", blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="todo")
 
     # Este es un comentario para forzar la detección de cambios
 
@@ -78,3 +85,20 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.user.username} on {self.item.name}"
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorites")
+    item = models.ForeignKey(
+        Item, on_delete=models.CASCADE, related_name="favorited_by"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (
+            "user",
+            "item",
+        )  # Evitar duplicados - un usuario solo puede marcar como favorito una vez
+
+    def __str__(self):
+        return f"{self.user.username}'s favorite: {self.item.name}"

@@ -16,4 +16,10 @@ urlpatterns = [
     path("edit-profile/", edit_profile, name="edit_profile"),
     path("register/", register, name="register"),
     path("change-log/", change_log_list, name="change_log_list"),
+    path("<int:pk>/favorite/", views.toggle_favorite, name="toggle_favorite"),
+    path("favorites/", views.favorites_list, name="favorites_list"),
+    path("kanban/", views.kanban_board, name="kanban_board"),
+    path(
+        "<int:pk>/update-status/", views.update_item_status, name="update_item_status"
+    ),
 ]

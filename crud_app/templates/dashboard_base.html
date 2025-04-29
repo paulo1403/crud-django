@@ -31,6 +31,20 @@
               </a>
             </li>
             <li class="nav-item">
+              <a href="{% url 'favorites_list' %}"
+                 class="nav-link {% if request.path == '/favorites/' %}active{% else %}link-body-emphasis{% endif %}">
+                <i class="bi bi-star me-2"></i>
+                <span class="sidebar-text">Favorites</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'kanban_board' %}"
+                 class="nav-link {% if request.path == '/kanban/' %}active{% else %}link-body-emphasis{% endif %}">
+                <i class="bi bi-kanban me-2"></i>
+                <span class="sidebar-text">Kanban Board</span>
+              </a>
+            </li>
+            <li class="nav-item">
               <a href="/edit-profile/"
                  class="nav-link {% if request.path == '/edit-profile/' %}active{% else %}link-body-emphasis{% endif %}">
                 <i class="bi bi-person me-2"></i>

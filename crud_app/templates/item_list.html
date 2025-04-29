@@ -125,6 +125,15 @@
                    class="btn btn-sm btn-info text-white">
                   <i class="bi bi-pencil"></i> Edit
                 </a>
+                <a href="{% url 'toggle_favorite' item.id %}"
+                   class="btn btn-sm {% if item.id in user_favorites %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                  <i class="bi {% if item.id in user_favorites %}bi-star-fill{% else %}bi-star{% endif %}"></i>
+                  {% if item.id in user_favorites %}
+                    Unfavorite
+                  {% else %}
+                    Favorite
+                  {% endif %}
+                </a>
                 <a href="{% url 'item_delete' item.id %}" class="btn btn-sm btn-danger">
                   <i class="bi bi-trash"></i> Delete
                 </a>

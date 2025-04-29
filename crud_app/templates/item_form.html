@@ -8,7 +8,11 @@
 {% endblock %}
 {% block dashboard_content %}
   <div class="mb-3">
-    <a href="{% url 'item_list' %}" class="btn btn-secondary">Back</a>
+    {% if source == 'kanban' %}
+      <a href="{% url 'kanban_board' %}" class="btn btn-secondary">Back</a>
+    {% else %}
+      <a href="{% url 'item_list' %}" class="btn btn-secondary">Back</a>
+    {% endif %}
   </div>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
