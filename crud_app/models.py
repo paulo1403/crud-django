@@ -5,14 +5,25 @@ from django.contrib.auth.models import User
 class Item(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="items")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="items")
+    file = models.FileField(upload_to="item_files/", null=True, blank=True)
 
     # Este es un comentario para forzar la detección de cambios
 
     def __str__(self):
         return self.name
+
+    def file_extension(self):
+        if self.file:
+            name = self.file.name
+            return name.split(".")[-1].lower() if "." in name else ""
+        return ""
+
+    def is_image(self):
+        ext = self.file_extension()
+        return ext in ["jpg", "jpeg", "png", "gif", "bmp", "webp"]
 
 
 class ChangeLog(models.Model):

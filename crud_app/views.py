@@ -3,15 +3,59 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Q
 from .forms import CustomUserCreationForm
 from .models import Item, ChangeLog
+import os
 
 
 # List all items
 @login_required
 def item_list(request):
+    from django.contrib.auth.models import User
+
+    # Inicializamos la búsqueda con todos los ítems
     items = Item.objects.all()
-    return render(request, "item_list.html", {"items": items})
+
+    # Búsqueda por texto en nombre o descripción
+    search_query = request.GET.get("search", "")
+    if search_query:
+        items = items.filter(
+            Q(name__icontains=search_query) | Q(description__icontains=search_query)
+        )
+
+    # Filtro por usuario creador
+    creator_filter = request.GET.get("creator", "")
+    if creator_filter:
+        items = items.filter(created_by__username=creator_filter)
+
+    # Filtro por tipo de archivo
+    file_filter = request.GET.get("file_type", "")
+    if file_filter == "with_file":
+        items = items.exclude(file="")
+    elif file_filter == "with_image":
+        # Esta es una aproximación, idealmente usaríamos un método más sofisticado
+        items = items.exclude(file="").filter(
+            Q(file__iendswith=".jpg")
+            | Q(file__iendswith=".jpeg")
+            | Q(file__iendswith=".png")
+            | Q(file__iendswith=".gif")
+        )
+    elif file_filter == "without_file":
+        items = items.filter(file="")
+
+    # Obtener lista de usuarios para el filtro
+    creators = User.objects.filter(items__isnull=False).distinct()
+
+    context = {
+        "items": items,
+        "search_query": search_query,
+        "creator_filter": creator_filter,
+        "file_filter": file_filter,
+        "creators": creators,
+    }
+
+    return render(request, "item_list.html", context)
 
 
 # Create a new item
@@ -23,6 +67,11 @@ def item_create(request):
         item = Item.objects.create(
             name=name, description=description, created_by=request.user
         )
+
+        # Manejar la subida de archivo si existe
+        if "file" in request.FILES:
+            item.file = request.FILES["file"]
+            item.save()
 
         # Crear registro en el historial con datos adicionales
         ChangeLog.objects.create(
@@ -47,6 +96,22 @@ def item_update(request, pk):
 
         item.name = request.POST.get("name")
         item.description = request.POST.get("description")
+
+        # Manejar la subida de archivo si existe
+        if "file" in request.FILES:
+            if item.file:
+                # Eliminar archivo antiguo si hay uno nuevo
+                if os.path.isfile(item.file.path):
+                    os.remove(item.file.path)
+            item.file = request.FILES["file"]
+
+        # Verificar si se debe eliminar el archivo
+        if request.POST.get("remove_file") and item.file:
+            file_path = item.file.path
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+            item.file = None
+
         item.save()
 
         # Crear registro en el historial con datos adicionales
