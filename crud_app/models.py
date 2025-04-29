@@ -2,6 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Item(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -9,6 +16,7 @@ class Item(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     file = models.FileField(upload_to="item_files/", null=True, blank=True)
+    tags = models.ManyToManyField(Tag, related_name="items", blank=True)
 
     # Este es un comentario para forzar la detección de cambios
 

@@ -1,21 +1,22 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
 from .forms import CustomUserCreationForm
-from .models import Item, ChangeLog
+from .models import Item, ChangeLog, Tag
 import os
 
 
 # List all items
 @login_required
 def item_list(request):
-    from django.contrib.auth.models import User
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
     # Inicializamos la búsqueda con todos los ítems
-    items = Item.objects.all()
+    items = Item.objects.all().order_by("-created_at")
 
     # Búsqueda por texto en nombre o descripción
     search_query = request.GET.get("search", "")
@@ -44,15 +45,38 @@ def item_list(request):
     elif file_filter == "without_file":
         items = items.filter(file="")
 
+    # Filtro por etiqueta
+    tag_filter = request.GET.get("tag", "")
+    if tag_filter:
+        items = items.filter(tags__name=tag_filter)
+
+    # Paginación
+    page = request.GET.get("page", 1)
+    paginator = Paginator(items, 10)  # Mostrar 10 ítems por página
+
+    try:
+        items_page = paginator.page(page)
+    except PageNotAnInteger:
+        # Si page no es un entero, muestra la primera página
+        items_page = paginator.page(1)
+    except EmptyPage:
+        # Si page está fuera de rango, muestra la última página de resultados
+        items_page = paginator.page(paginator.num_pages)
+
     # Obtener lista de usuarios para el filtro
     creators = User.objects.filter(items__isnull=False).distinct()
 
+    # Obtener todas las etiquetas para el filtro
+    all_tags = Tag.objects.all()
+
     context = {
-        "items": items,
+        "items": items_page,
         "search_query": search_query,
         "creator_filter": creator_filter,
         "file_filter": file_filter,
+        "tag_filter": tag_filter,
         "creators": creators,
+        "all_tags": all_tags,
     }
 
     return render(request, "item_list.html", context)
@@ -61,6 +85,9 @@ def item_list(request):
 # Create a new item
 @login_required
 def item_create(request):
+    # Obtener todas las etiquetas para mostrar en el formulario
+    all_tags = Tag.objects.all().order_by("name")
+
     if request.method == "POST":
         name = request.POST.get("name")
         description = request.POST.get("description")
@@ -73,6 +100,24 @@ def item_create(request):
             item.file = request.FILES["file"]
             item.save()
 
+        # Manejar etiquetas existentes seleccionadas
+        if "tags" in request.POST:
+            selected_tags = request.POST.getlist("tags")
+            for tag_id in selected_tags:
+                try:
+                    tag = Tag.objects.get(id=tag_id)
+                    item.tags.add(tag)
+                except Tag.DoesNotExist:
+                    pass
+
+        # Manejar nuevas etiquetas
+        new_tags = request.POST.get("new_tags", "")
+        if new_tags:
+            tag_names = [tag.strip() for tag in new_tags.split(",") if tag.strip()]
+            for tag_name in tag_names:
+                tag, created = Tag.objects.get_or_create(name=tag_name)
+                item.tags.add(tag)
+
         # Crear registro en el historial con datos adicionales
         ChangeLog.objects.create(
             item=item,
@@ -83,13 +128,18 @@ def item_create(request):
             additional_data={"description": item.description},
         )
         return redirect("item_list")
-    return render(request, "item_form.html")
+
+    context = {"all_tags": all_tags}
+    return render(request, "item_form.html", context)
 
 
 # Update an existing item
 @login_required
 def item_update(request, pk):
     item = get_object_or_404(Item, pk=pk)
+    # Obtener todas las etiquetas para mostrar en el formulario
+    all_tags = Tag.objects.all().order_by("name")
+
     if request.method == "POST":
         old_name = item.name
         old_description = item.description
@@ -112,7 +162,29 @@ def item_update(request, pk):
                 os.remove(file_path)
             item.file = None
 
+        # Guardar cambios básicos antes de manejar etiquetas
         item.save()
+
+        # Manejar etiquetas - primero limpiar las existentes
+        item.tags.clear()
+
+        # Añadir etiquetas existentes seleccionadas
+        if "tags" in request.POST:
+            selected_tags = request.POST.getlist("tags")
+            for tag_id in selected_tags:
+                try:
+                    tag = Tag.objects.get(id=tag_id)
+                    item.tags.add(tag)
+                except Tag.DoesNotExist:
+                    pass
+
+        # Manejar nuevas etiquetas
+        new_tags = request.POST.get("new_tags", "")
+        if new_tags:
+            tag_names = [tag.strip() for tag in new_tags.split(",") if tag.strip()]
+            for tag_name in tag_names:
+                tag, created = Tag.objects.get_or_create(name=tag_name)
+                item.tags.add(tag)
 
         # Crear registro en el historial con datos adicionales
         ChangeLog.objects.create(
@@ -129,7 +201,9 @@ def item_update(request, pk):
             },
         )
         return redirect("item_list")
-    return render(request, "item_form.html", {"item": item})
+
+    context = {"item": item, "all_tags": all_tags}
+    return render(request, "item_form.html", context)
 
 
 # Delete an item
