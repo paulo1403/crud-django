@@ -1,7 +1,12 @@
 {% extends 'base.html' %} {% block content %}
 <h1 class="title">Item List</h1>
-<a href="{% url 'item_create' %}" class="button is-primary">Add New Item</a>
-<table class="table is-striped is-fullwidth">
+<a href="{% url 'item_create' %}" class="button is-primary mb-4">
+  <span class="icon">
+    <i class="fas fa-plus"></i>
+  </span>
+  <span>Add New Item</span>
+</a>
+<table class="table is-striped is-hoverable is-fullwidth">
   <thead>
     <tr>
       <th>Name</th>
@@ -18,13 +23,21 @@
         <a
           href="{% url 'item_update' item.id %}"
           class="button is-small is-info"
-          >Edit</a
         >
+          <span class="icon">
+            <i class="fas fa-edit"></i>
+          </span>
+          <span>Edit</span>
+        </a>
         <a
           href="{% url 'item_delete' item.id %}"
           class="button is-small is-danger"
-          >Delete</a
         >
+          <span class="icon">
+            <i class="fas fa-trash"></i>
+          </span>
+          <span>Delete</span>
+        </a>
       </td>
     </tr>
     {% endfor %}
