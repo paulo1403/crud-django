@@ -139,3 +139,18 @@ LOGOUT_REDIRECT_URL = "/login/"
 
 # Redirect to home page after login
 LOGIN_REDIRECT_URL = "/"
+
+# Email settings
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  # For development only
+# For production, use something like:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.example.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your-email@example.com'
+# EMAIL_HOST_PASSWORD = 'your-password'
+
+# The following settings specify the base URL for password reset emails
+# Set this to your site's domain in production
+PASSWORD_RESET_TIMEOUT = 259200  # 3 days in seconds
+DEFAULT_FROM_EMAIL = "noreply@crudapp.com"
