@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils.http import url_has_allowed_host_and_scheme
+from .forms import CustomUserCreationForm
 from .models import Item
 
 # List all items
@@ -55,3 +55,18 @@ def edit_profile(request):
         return redirect('item_list')
 
     return render(request, 'edit_profile.html', {'next': request.GET.get('next', '')})
+
+# Register a new user
+def register(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            user.first_name = form.cleaned_data.get('first_name')
+            user.last_name = form.cleaned_data.get('last_name')
+            user.save()
+            messages.success(request, 'Account created successfully!')
+            return redirect('login')
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'register.html', {'form': form})

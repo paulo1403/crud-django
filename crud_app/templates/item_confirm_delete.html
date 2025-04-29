@@ -1,9 +1,9 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="container mt-5">
   <h1 class="fs-3 fw-bold mb-4">Confirm Delete</h1>
-  <p>Are you sure you want to delete the item <strong>{{ item.name }}</strong>?</p>
+  <p>
+    Are you sure you want to delete the item <strong>{{ item.name }}</strong>?
+  </p>
   <form method="post">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Yes, Delete</button>
