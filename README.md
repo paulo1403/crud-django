@@ -14,13 +14,16 @@ This is a comprehensive CRUD (Create, Read, Update, Delete) application built wi
 
 ### Advanced Features
 
-- **User Authentication System**: Registration, login, and profile editing
+- **User Authentication System**: Registration, login, password reset, and profile editing
 - **File Upload**: Attach images and documents to items
 - **Tagging System**: Categorize items with tags for better organization
 - **Search and Filtering**: Find items by text, creator, file type, or tags
 - **Comment System**: Collaborate through comments on items
 - **Change History**: Track all modifications with detailed audit trail
 - **Responsive UI**: Modern Bootstrap interface that works on all devices
+- **Kanban Board**: Visual task management with drag-and-drop functionality
+- **Favorites System**: Bookmark items for quick access
+- **Password Reset**: Secure password recovery via email
 
 ## Technologies Used
 
@@ -30,6 +33,7 @@ This is a comprehensive CRUD (Create, Read, Update, Delete) application built wi
 - **File Storage**: Django's FileField for handling uploaded files
 - **UI Components**: Bootstrap Icons, responsive layout components
 - **Themes**: Light/Dark mode toggle with persistent preferences
+- **Interactive UI**: Drag-and-drop functionality, tooltips, form validation
 
 ## Setup Instructions
 
@@ -79,6 +83,7 @@ This is a comprehensive CRUD (Create, Read, Update, Delete) application built wi
 ### User Authentication
 
 - Register a new account or log in with existing credentials
+- Reset forgotten passwords through secure email verification
 - Edit your profile information including name and email
 - Staff users have access to the change log history
 
@@ -86,6 +91,7 @@ This is a comprehensive CRUD (Create, Read, Update, Delete) application built wi
 
 - **List View**: See all items with pagination, search and filtering options
 - **Detail View**: Click on an item name or "View" button to see full details
+- **Kanban View**: Visualize and organize items by status (To Do, In Progress, Done)
 - **Item Creation**: Add new items with name, description, tags, and file attachment
 - **Item Editing**: Modify existing items including their attached files and tags
 - **Item Deletion**: Remove items no longer needed
@@ -101,6 +107,28 @@ This is a comprehensive CRUD (Create, Read, Update, Delete) application built wi
 - Add comments on item detail pages
 - See all comments with their authors and timestamps
 - Foster collaboration through discussion
+
+### Kanban Board
+
+- Drag and drop items between status columns (To Do, In Progress, Done)
+- Visual indication of item status with color-coded columns
+- Items maintain their tags, descriptions, and other metadata across status changes
+- Real-time status updates without page reload
+- Favorite items are highlighted for quick identification
+
+### Favorites System
+
+- Mark items as favorites for quick access
+- Filter to see only favorite items
+- Visual highlighting of favorite items in all views
+- Toggle favorite status with a single click
+
+### Password Reset System
+
+- Request password reset via registered email
+- Receive secure time-limited reset link
+- Create and confirm new password with security requirements
+- Confirmation on successful password change
 
 ## Project Structure
 
@@ -144,12 +172,22 @@ This is a comprehensive CRUD (Create, Read, Update, Delete) application built wi
 - Records create, update, and delete operations
 - Preserves item information even after deletion
 - Staff users can access complete change log
+- Tracks status changes in Kanban workflow
 
 ### Theme Switching
 
 - Toggle between light and dark themes
 - User preference saved between sessions
-- Automatic theme switching based on saved preference
+- Automatic theme detection based on system preferences
+- Consistent styling across all components in both themes
+
+### User Interface Improvements
+
+- Icon-only actions with tooltips for cleaner interface
+- Improved form validation with visual feedback
+- Enhanced login and registration screens
+- Responsive design that adapts to mobile, tablet, and desktop views
+- Consistent visual language across the application
 
 ## Notes
 
@@ -157,6 +195,7 @@ This is a comprehensive CRUD (Create, Read, Update, Delete) application built wi
 - The project uses Bootstrap 5 for responsive, modern styling
 - For file uploads to work properly, ensure the media directory is writable
 - For the best experience, use a modern browser that supports Bootstrap 5
+- For password reset emails in production, configure a proper email backend
 
 ## License
 
