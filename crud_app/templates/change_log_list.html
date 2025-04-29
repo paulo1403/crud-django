@@ -1,25 +1,76 @@
-{% extends 'dashboard_base.html' %} {% block dashboard_content %}
-<div class="container mt-5">
-  <h1 class="fs-3 fw-bold mb-4">Change Log</h1>
-  <table class="table table-striped table-hover">
-    <thead>
-      <tr>
-        <th>Action</th>
-        <th>Item</th>
-        <th>User</th>
-        <th>Timestamp</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for log in change_logs %}
-      <tr>
-        <td>{{ log.get_action_display }}</td>
-        <td>{{ log.item.name }}</td>
-        <td>{{ log.user.get_full_name|default:log.user.username }}</td>
-        <td>{{ log.timestamp }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+{% extends 'dashboard_base.html' %}
+{% block page_title %}Change Log{% endblock %}
+{% block dashboard_content %}
+  <div class="container mt-5">
+    <h1 class="fs-3 fw-bold mb-4">Change Log</h1>
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Item</th>
+          <th>User</th>
+          <th>Timestamp</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in change_logs %}
+          <tr>
+            <td>
+              <span class="badge {% if log.action == 'create' %}bg-success{% elif log.action == 'update' %}bg-info{% elif log.action == 'delete' %}bg-danger{% endif %}">
+                {{ log.get_action_display }}
+              </span>
+            </td>
+            <td>
+              {% if log.item %}
+                {{ log.item.name }}
+              {% else %}
+                {{ log.item_name }} <small class="text-muted">(deleted)</small>
+              {% endif %}
+            </td>
+            <td>{{ log.user.get_full_name|default:log.user.username }}</td>
+            <td>{{ log.timestamp|date:"M d, Y H:i:s" }}</td>
+            <td>
+              {% if log.action == 'update' and log.additional_data %}
+                <button class="btn btn-sm btn-outline-info"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#details{{ log.id }}"
+                        aria-expanded="false">View Changes</button>
+                <div class="collapse" id="details{{ log.id }}">
+                  <div class="card card-body mt-2">
+                    <p>
+                      <strong>Old Name:</strong> {{ log.additional_data.old_name }}
+                    </p>
+                    <p>
+                      <strong>New Name:</strong> {{ log.additional_data.new_name }}
+                    </p>
+                    <p>
+                      <strong>Old Description:</strong> {{ log.additional_data.old_description }}
+                    </p>
+                    <p>
+                      <strong>New Description:</strong> {{ log.additional_data.new_description }}
+                    </p>
+                  </div>
+                </div>
+              {% elif log.action == 'delete' and log.additional_data %}
+                <button class="btn btn-sm btn-outline-danger"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#details{{ log.id }}"
+                        aria-expanded="false">View Details</button>
+                <div class="collapse" id="details{{ log.id }}">
+                  <div class="card card-body mt-2">
+                    <p>
+                      <strong>Description:</strong> {{ log.additional_data.description }}
+                    </p>
+                  </div>
+                </div>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% endblock %}
