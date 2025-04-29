@@ -105,6 +105,11 @@
         if (savedTheme) {
           htmlElement.setAttribute('data-bs-theme', savedTheme);
           updateToggleButtonText(savedTheme);
+        } else {
+          // Use system preference as default
+          const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          htmlElement.setAttribute('data-bs-theme', systemTheme);
+          updateToggleButtonText(systemTheme);
         }
         
         themeToggleBtn.addEventListener('click', function() {
@@ -128,6 +133,15 @@
             themeToggleBtn.innerHTML = '<i class="bi bi-moon"></i> Dark Mode';
           }
         }
+        
+        // Listen for system theme changes if no manual preference
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+          if (!localStorage.getItem('theme')) {
+            const newTheme = event.matches ? 'dark' : 'light';
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            updateToggleButtonText(newTheme);
+          }
+        });
       });
     </script>
     {% block extra_scripts %}{% endblock %}
