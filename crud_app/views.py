@@ -380,10 +380,7 @@ def kanban_board(request):
 # Update item status (for Kanban drag-and-drop)
 @login_required
 def update_item_status(request, pk):
-    if (
-        request.method == "POST"
-        and request.headers.get("X-Requested-With") == "XMLHttpRequest"
-    ):
+    if request.method == "POST":
         item = get_object_or_404(Item, pk=pk)
         new_status = request.POST.get("status")
 
