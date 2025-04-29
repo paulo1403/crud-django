@@ -36,12 +36,15 @@
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              {{ user.username }}
+              {{ user.get_full_name|default:user.username }}
             </button>
             <ul
               class="dropdown-menu dropdown-menu-end"
               aria-labelledby="userDropdown"
             >
+              <li>
+                <a class="dropdown-item" href="/edit-profile/">Edit Profile</a>
+              </li>
               <li><a class="dropdown-item" href="/logout/">Logout</a></li>
             </ul>
           </div>

@@ -1,5 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.utils.http import url_has_allowed_host_and_scheme
 from .models import Item
 
 # List all items
@@ -36,3 +39,19 @@ def item_delete(request, pk):
         item.delete()
         return redirect('item_list')
     return render(request, 'item_confirm_delete.html', {'item': item})
+
+# Edit user profile
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        user = request.user
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.email = request.POST.get('email', user.email)
+        user.save()
+        messages.success(request, 'Profile updated successfully!')
+
+        # Redirect to the item list page after saving changes
+        return redirect('item_list')
+
+    return render(request, 'edit_profile.html', {'next': request.GET.get('next', '')})

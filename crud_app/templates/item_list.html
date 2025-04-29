@@ -8,6 +8,7 @@
     <tr>
       <th>Name</th>
       <th>Description</th>
+      <th>Created By</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -16,6 +17,7 @@
     <tr>
       <td>{{ item.name }}</td>
       <td>{{ item.description }}</td>
+      <td>{{ item.created_by.get_full_name }}</td>
       <td>
         <a
           href="{% url 'item_update' item.id %}"
