@@ -1,0 +1,33 @@
+{% extends 'base.html' %} {% block content %}
+<h1 class="title">Item List</h1>
+<a href="{% url 'item_create' %}" class="button is-primary">Add New Item</a>
+<table class="table is-striped is-fullwidth">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td>{{ item.name }}</td>
+      <td>{{ item.description }}</td>
+      <td>
+        <a
+          href="{% url 'item_update' item.id %}"
+          class="button is-small is-info"
+          >Edit</a
+        >
+        <a
+          href="{% url 'item_delete' item.id %}"
+          class="button is-small is-danger"
+          >Delete</a
+        >
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
