@@ -1,0 +1,76 @@
+/* Avatar styles */
+.avatar-circle {
+  width: 45px;
+  height: 45px;
+}
+
+.avatar-circle-large {
+  width: 80px;
+  height: 80px;
+}
+
+.avatar-icon {
+  font-size: 2rem;
+}
+
+/* Comment section styles */
+.comment-icon {
+  font-size: 2rem;
+}
+
+/* Kanban board styles */
+.kanban-board .card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.kanban-column {
+  min-height: 300px;
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+}
+
+.kanban-item {
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+.kanban-item:active {
+  cursor: grabbing;
+}
+
+.kanban-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.favorite-item {
+  border-width: 2px !important;
+}
+
+.drag-over {
+  background-color: rgba(0, 123, 255, 0.1);
+  border: 2px dashed #007bff;
+}
+
+.empty-state {
+  width: 100%;
+}
+
+.inbox-icon {
+  font-size: 2rem;
+}
+
+/* Item detail styles */
+.item-image {
+  max-height: 300px;
+}
+
+/* Password reset complete styles */
+.password-reset-icon {
+  font-size: 4rem;
+}
+
+/* Password reset done styles */
+.password-reset-done-icon {
+  font-size: 4rem;
+}

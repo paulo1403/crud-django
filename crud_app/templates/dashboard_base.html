@@ -15,9 +15,13 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <!-- CSRF Token for JavaScript -->
     {% csrf_token %}
     <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="description" content="CRUD Application for managing items">
+    <meta name="keywords" content="CRUD, Django, Bootstrap, Items Management">
     {% block extra_head %}{% endblock %}
   </head>
   <body>
