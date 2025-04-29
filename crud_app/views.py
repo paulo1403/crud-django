@@ -2,8 +2,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.contrib.admin.views.decorators import staff_member_required
 from .forms import CustomUserCreationForm
-from .models import Item
+from .models import Item, ChangeLog
 
 # List all items
 @login_required
@@ -17,7 +18,8 @@ def item_create(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description')
-        Item.objects.create(name=name, description=description, created_by=request.user)
+        item = Item.objects.create(name=name, description=description, created_by=request.user)
+        ChangeLog.objects.create(item=item, user=request.user, action='create')
         return redirect('item_list')
     return render(request, 'item_form.html')
 
@@ -29,13 +31,16 @@ def item_update(request, pk):
         item.name = request.POST.get('name')
         item.description = request.POST.get('description')
         item.save()
+        ChangeLog.objects.create(item=item, user=request.user, action='update')
         return redirect('item_list')
     return render(request, 'item_form.html', {'item': item})
 
 # Delete an item
+@login_required
 def item_delete(request, pk):
     item = get_object_or_404(Item, pk=pk)
     if request.method == 'POST':
+        ChangeLog.objects.create(item=item, user=request.user, action='delete')
         item.delete()
         return redirect('item_list')
     return render(request, 'item_confirm_delete.html', {'item': item})
@@ -70,3 +75,9 @@ def register(request):
     else:
         form = CustomUserCreationForm()
     return render(request, 'register.html', {'form': form})
+
+# Change log list (for administrators)
+@staff_member_required
+def change_log_list(request):
+    change_logs = ChangeLog.objects.select_related('item', 'user').order_by('-timestamp')
+    return render(request, 'change_log_list.html', {'change_logs': change_logs})
