@@ -50,7 +50,7 @@
                             </div>
                         </div>
                     {% empty %}
-                        <div class="text-center py-4 text-muted">
+                        <div class="text-center py-4 text-muted empty-state">
                             <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                             <p class="mt-2">No items in this column</p>
                         </div>
@@ -97,7 +97,7 @@
                             </div>
                         </div>
                     {% empty %}
-                        <div class="text-center py-4 text-muted">
+                        <div class="text-center py-4 text-muted empty-state">
                             <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                             <p class="mt-2">No items in this column</p>
                         </div>
@@ -142,7 +142,7 @@
                             </div>
                         </div>
                     {% empty %}
-                        <div class="text-center py-4 text-muted">
+                        <div class="text-center py-4 text-muted empty-state">
                             <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                             <p class="mt-2">No items in this column</p>
                         </div>
@@ -215,6 +215,20 @@ document.addEventListener('DOMContentLoaded', function() {
       const newStatus = column.getAttribute('data-status');
       
       if (item) {
+        // Remove empty state message if it exists in the target column
+        const emptyStateMsg = column.querySelector('.empty-state');
+        if (emptyStateMsg) {
+          emptyStateMsg.remove();
+        }
+        
+        // Check if source column will be empty after moving the item
+        const sourceColumn = item.parentElement;
+        if (sourceColumn !== column && sourceColumn.querySelectorAll('.kanban-item').length === 1) {
+          // This was the last item, add empty state to source column
+          const emptyMsg = createEmptyStateMessage();
+          sourceColumn.appendChild(emptyMsg);
+        }
+        
         // Mover visualmente el elemento a la nueva columna
         column.appendChild(item);
         
@@ -223,6 +237,25 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+  
+  // Helper function to create empty state message
+  function createEmptyStateMessage() {
+    const div = document.createElement('div');
+    div.className = 'text-center py-4 text-muted empty-state';
+    
+    const icon = document.createElement('i');
+    icon.className = 'bi bi-inbox';
+    icon.style.fontSize = '2rem';
+    
+    const text = document.createElement('p');
+    text.className = 'mt-2';
+    text.textContent = 'No items in this column';
+    
+    div.appendChild(icon);
+    div.appendChild(text);
+    
+    return div;
+  }
   
   // Función para actualizar el estado del ítem en el servidor
   function updateItemStatus(itemId, newStatus) {
@@ -289,6 +322,11 @@ document.addEventListener('DOMContentLoaded', function() {
   .drag-over {
     background-color: rgba(0, 123, 255, 0.1);
     border: 2px dashed #007bff;
+  }
+  
+  /* Add a class for the empty state message */
+  .empty-state {
+    width: 100%;
   }
     </style>
 {% endblock %}
