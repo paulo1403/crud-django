@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ValidationError
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -49,3 +50,15 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields["password2"].widget.attrs.update(
             {"class": "form-control", "placeholder": "Confirm your password"}
         )
+
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get("first_name", "")
+        if len(first_name) < 3 and first_name:
+            raise ValidationError("First name must be at least 3 characters long.")
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get("last_name", "")
+        if len(last_name) < 3 and last_name:
+            raise ValidationError("Last name must be at least 3 characters long.")
+        return last_name

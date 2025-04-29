@@ -41,6 +41,7 @@
                   <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
                     {{ form.first_name }}
+                    <div class="invalid-feedback">First name must be at least 3 characters long.</div>
                   </div>
                   {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors }}</div>{% endif %}
                 </div>
@@ -49,6 +50,7 @@
                   <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-person-badge-fill"></i></span>
                     {{ form.last_name }}
+                     <div class="invalid-feedback">Last name must be at least 3 characters long.</div>
                   </div>
                   {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors }}</div>{% endif %}
                 </div>
@@ -133,6 +135,25 @@
     const forms = document.querySelectorAll('.needs-validation');
     Array.from(forms).forEach(form => {
       form.addEventListener('submit', event => {
+        const firstNameInput = document.getElementById('id_first_name');
+        const lastNameInput = document.getElementById('id_last_name');
+        
+        if (firstNameInput.value.length < 3) {
+          firstNameInput.classList.add('is-invalid');
+          event.preventDefault();
+          event.stopPropagation();
+        } else {
+          firstNameInput.classList.remove('is-invalid');
+        }
+        
+        if (lastNameInput.value.length < 3) {
+          lastNameInput.classList.add('is-invalid');
+          event.preventDefault();
+          event.stopPropagation();
+        } else {
+          lastNameInput.classList.remove('is-invalid');
+        }
+
         if (!form.checkValidity()) {
           event.preventDefault();
           event.stopPropagation();
