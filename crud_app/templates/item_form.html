@@ -1,30 +1,31 @@
-{% extends 'base.html' %} {% block content %}
-<div class="mb-3">
-  <a href="{% url 'item_list' %}" class="btn btn-secondary">Back</a>
-</div>
-<h1 class="fs-3 fw-bold mb-4">
-  {% if item %}Edit Item{% else %}Add New Item{% endif %}
-</h1>
-<form method="post">
-  {% csrf_token %}
+{% extends 'dashboard_base.html' %}
+{% block page_title %}
+  {% if item %}
+    Edit Item
+  {% else %}
+    Add New Item
+  {% endif %}
+{% endblock %}
+{% block dashboard_content %}
   <div class="mb-3">
-    <label class="form-label">Name</label>
-    <input
-      class="form-control"
-      type="text"
-      name="name"
-      value="{{ item.name|default:'' }}"
-      required
-    />
+    <a href="{% url 'item_list' %}" class="btn btn-secondary">Back</a>
   </div>
-  <div class="mb-3">
-    <label class="form-label">Description</label>
-    <textarea class="form-control" name="description" required>
-{{ item.description|default:'' }}</textarea
-    >
-  </div>
-  <div class="mb-3">
-    <button class="btn btn-primary" type="submit">Save</button>
-  </div>
-</form>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Name</label>
+      <input class="form-control"
+             type="text"
+             name="name"
+             value="{{ item.name|default:'' }}"
+             required />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      <textarea class="form-control" name="description" required>{{ item.description|default:'' }}</textarea>
+    </div>
+    <div class="mb-3">
+      <button class="btn btn-primary" type="submit">Save</button>
+    </div>
+  </form>
 {% endblock %}
