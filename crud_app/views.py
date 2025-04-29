@@ -6,7 +6,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
 from .forms import CustomUserCreationForm
-from .models import Item, ChangeLog, Tag
+from .models import Item, ChangeLog, Tag, Comment
 import os
 
 
@@ -275,3 +275,29 @@ def change_log_list(request):
         "-timestamp"
     )
     return render(request, "change_log_list.html", {"change_logs": change_logs})
+
+
+# Item detail view
+@login_required
+def item_detail(request, pk):
+    item = get_object_or_404(Item, pk=pk)
+    comments = item.comments.all()
+
+    # Historial de cambios para este ítem
+    changes = ChangeLog.objects.filter(
+        Q(item=item) | Q(original_item_id=item.id, item__isnull=True)
+    ).order_by("-timestamp")
+
+    # Manejar la publicación de un nuevo comentario
+    if request.method == "POST":
+        comment_text = request.POST.get("comment_text", "").strip()
+        if comment_text:
+            Comment.objects.create(item=item, user=request.user, text=comment_text)
+            messages.success(request, "Comment added successfully!")
+            return redirect("item_detail", pk=pk)
+        else:
+            messages.error(request, "Comment cannot be empty.")
+
+    context = {"item": item, "comments": comments, "changes": changes}
+
+    return render(request, "item_detail.html", context)

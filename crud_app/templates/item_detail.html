@@ -1,0 +1,161 @@
+{% extends 'dashboard_base.html' %}
+{% block page_title %}{{ item.name }}{% endblock %}
+{% block dashboard_content %}
+    <div class="mb-3">
+        <a href="{% url 'item_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+        <a href="{% url 'item_update' item.id %}"
+           class="btn btn-info text-white ms-2">
+            <i class="bi bi-pencil"></i> Edit Item
+        </a>
+    </div>
+    <div class="row">
+        <!-- Item details column -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Item Details</h5>
+                    <span class="badge bg-primary">Created {{ item.created_at|date:"M d, Y" }}</span>
+                </div>
+                <div class="card-body">
+                    <h3>{{ item.name }}</h3>
+                    <p class="text-muted">Created by {{ item.created_by.get_full_name|default:item.created_by.username }}</p>
+                    <h5 class="mt-4">Description</h5>
+                    <p>{{ item.description }}</p>
+                    <h5 class="mt-4">Tags</h5>
+                    <div class="mb-3">
+                        {% for tag in item.tags.all %}
+                            <a href="{% url 'item_list' %}?tag={{ tag.name }}"
+                               class="badge bg-primary text-decoration-none me-1">{{ tag.name }}</a>
+                        {% empty %}
+                            <span class="text-muted">No tags</span>
+                        {% endfor %}
+                    </div>
+                    {% if item.file %}
+                        <h5 class="mt-4">File</h5>
+                        <div class="mb-3">
+                            <a href="{{ item.file.url }}"
+                               class="btn btn-sm btn-outline-primary"
+                               target="_blank">
+                                <i class="bi bi-download"></i> Download File
+                            </a>
+                            {% if item.is_image %}
+                                <div class="mt-3">
+                                    <img src="{{ item.file.url }}"
+                                         alt="{{ item.name }}"
+                                         class="img-fluid rounded"
+                                         style="max-height: 300px">
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Comments section -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-chat-left-text"></i> Comments
+                        <span class="badge bg-secondary">{{ comments.count }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Comment form -->
+                    <form method="post" class="mb-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="comment_text" class="form-label">Add a comment</label>
+                            <textarea class="form-control"
+                                      id="comment_text"
+                                      name="comment_text"
+                                      rows="3"
+                                      required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Post Comment
+                        </button>
+                    </form>
+                    <!-- Comments list -->
+                    {% if comments %}
+                        <hr>
+                        {% for comment in comments %}
+                            <div class="d-flex mb-4">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar bg-light text-primary rounded-circle d-flex justify-content-center align-items-center"
+                                         style="width: 45px;
+                                                height: 45px">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3 flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ comment.user.get_full_name|default:comment.user.username }}</h6>
+                                        <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+                                    </div>
+                                    <p class="mb-0">{{ comment.text }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-chat-left" style="font-size: 2rem;"></i>
+                            <p class="mt-2">No comments yet. Be the first to comment!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- History and metadata column -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock-history"></i> Change History
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for change in changes %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge {% if change.action == 'create' %}bg-success{% elif change.action == 'update' %}bg-info{% elif change.action == 'delete' %}bg-danger{% endif %}">
+                                        {{ change.get_action_display }}
+                                    </span>
+                                    <small>{{ change.timestamp|date:"M d, Y H:i" }}</small>
+                                </div>
+                                <div class="mt-2">
+                                    <small>By {{ change.user.get_full_name|default:change.user.username }}</small>
+                                    {% if change.action == 'update' and change.additional_data %}
+                                        <button class="btn btn-sm btn-link p-0 ms-2"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#change-{{ change.id }}">View details</button>
+                                        <div class="collapse mt-2" id="change-{{ change.id }}">
+                                            <div class="card card-body bg-light">
+                                                {% if change.additional_data.old_name != change.additional_data.new_name %}
+                                                    <div class="mb-1">
+                                                        <strong>Name:</strong>
+                                                        <span class="text-danger">{{ change.additional_data.old_name }}</span> →
+                                                        <span class="text-success">{{ change.additional_data.new_name }}</span>
+                                                    </div>
+                                                {% endif %}
+                                                {% if change.additional_data.old_description != change.additional_data.new_description %}
+                                                    <div>
+                                                        <strong>Description changed</strong>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="list-group-item text-center text-muted py-3">No change history available</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

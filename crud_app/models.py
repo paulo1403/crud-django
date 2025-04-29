@@ -64,3 +64,17 @@ class ChangeLog(models.Model):
         item_name = self.item.name if self.item else self.item_name
         username = self.user.username if self.user else "Unknown user"
         return f"{self.action.capitalize()} - {item_name} by {username} on {self.timestamp}"
+
+
+class Comment(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="comments")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Comment by {self.user.username} on {self.item.name}"
